@@ -6,11 +6,11 @@
 #include "frg/optional.hpp"
 #include "frg/string.hpp"
 #include "frg/unique.hpp"
+#include "frg/variant.hpp"
 #include "frg/vector.hpp"
 #include <cstdint>
 #include <initializer_list>
 #include <iostream>
-#include <variant>
 
 struct MemoryAllocator {
 public:
@@ -53,7 +53,7 @@ using Object = frg::hash_map<frg::string<MemoryAllocator>, JsonValue,
 using Array = frg::vector<JsonValue, MemoryAllocator>;
 
 class JsonValue {
-    using Value = std::variant<std::monostate, bool, int64_t, double,
+    using Value = frg::variant<std::nullptr_t, bool, int64_t, double,
                                frg::string<MemoryAllocator>, Object, Array>;
 
 public:
@@ -63,29 +63,30 @@ public:
     JsonValue(bool value) : value(std::move(value)) {}
     JsonValue(int64_t value) : value(value) {}
     JsonValue(double value) : value(value) {}
-    JsonValue(std::monostate value) : value(std::move(value)) {}
-    JsonValue() : value(std::monostate{}) {}
+    JsonValue(std::nullptr_t value) : value(std::move(value)) {}
+    JsonValue() : value(nullptr) {}
 
     template <typename T> T &get() {
         if constexpr (std::is_same_v<T, void>)
             FRG_ASSERT(!"empty JsonValue");
         else if constexpr (std::is_same_v<T, Object>) {
-            return static_cast<Object &>(std::get<Object>(this->value));
+            return static_cast<Object &>(this->value.get<Object>());
         } else if constexpr (std::is_same_v<T, Array>)
-            return static_cast<Array &>(std::get<Array>(this->value));
+            return static_cast<Array &>(this->value.get<Array>());
         else
-            return std::get<T>(static_cast<Value &>(this->value));
+            return this->value.get<T>();
+        // return std::get<T>(static_cast<Value &>(this->value));
     }
 
     JsonValue &operator[](const size_t i) {
-        if (!std::holds_alternative<Array>(this->value))
+        if (!this->value.is<Array>())
             FRG_ASSERT(!"JsonValue is not an array");
 
         return get<Array>()[i];
     }
 
     JsonValue &operator[](const char *key) {
-        if (!std::holds_alternative<Object>(this->value))
+        if (!this->value.is<Object>())
             FRG_ASSERT(!"JsonValue is not an object");
 
         return get<Object>()[key];
@@ -268,7 +269,7 @@ public:
 
         case 'n': {
             consume_literal("null");
-            return JsonValue(std::monostate{});
+            return JsonValue();
         }
 
         default:
