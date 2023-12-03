@@ -7,5 +7,5 @@ if not get_option('json_no_install')
     install_headers('include/json.hpp')
 endif
 
-incl = include_directories('include', 'frigg')
+incl = include_directories('include')
 json_dep = declare_dependency(include_directories: incl)

@@ -1,16 +1,18 @@
 #pragma once
 
-#include "frg/expected.hpp"
-#include "frg/hash_map.hpp"
-#include "frg/macros.hpp"
-#include "frg/optional.hpp"
-#include "frg/string.hpp"
-#include "frg/unique.hpp"
-#include "frg/variant.hpp"
-#include "frg/vector.hpp"
 #include <cstdint>
+#include <frg/expected.hpp>
+#include <frg/hash_map.hpp>
+#include <frg/macros.hpp>
+#include <frg/optional.hpp>
+#include <frg/string.hpp>
+#include <frg/unique.hpp>
+#include <frg/variant.hpp>
+#include <frg/vector.hpp>
 #include <initializer_list>
-#include <iostream>
+#include <string>
+
+namespace json {
 
 struct MemoryAllocator {
 public:
@@ -21,9 +23,6 @@ public:
 };
 
 enum class NumberType { Double, Integer };
-
-namespace json {
-
 enum class Error { UnexpectedEOF };
 
 /// Returns whether the given character is considered a whitespace.
